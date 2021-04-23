@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | RobotLearn</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop" style="width: 100%; height:100%">
+      <canvas id="unity-canvas"></canvas>
+<!--      <div id="unity-loading-bar">-->
+<!--        <div id="unity-logo"></div>-->
+<!--        <div id="unity-progress-bar-empty">-->
+<!--&lt;!&ndash;          <div id="unity-progress-bar-full"></div>&ndash;&gt;-->
+<!--        </div>-->
+<!--      </div>-->
+
+    </div>
+    <script>
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/Demo.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/Demo.data",
+        frameworkUrl: buildUrl + "/Demo.framework.js",
+        codeUrl: buildUrl + "/Demo.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "YiHuaShengXin",
+        productName: "RobotLearn",
+        productVersion: "2.1.0",
+      };
+
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      //var loadingBar = document.querySelector("#unity-loading-bar");
+      //var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var mobileWarning = document.querySelector("#unity-mobile-warning");
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        container.className = "unity-mobile";
+        config.devicePixelRatio = 1;
+        mobileWarning.style.display = "block";
+        setTimeout(() => {
+          mobileWarning.style.display = "none";
+        }, 5000);
+      } else {
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+      }
+      //loadingBar.style.display = "block";
+      let  gameInstance;
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          //progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          gameInstance=unityInstance
+          // loadingBar.style.display = "none";
+          // fullscreenButton.onclick = () => {
+          //   unityInstance.SetFullscreen(1);
+          // };
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+
+      window.addEventListener('message',function(event){
+        if(event.data.code==0){
+          gameInstance.SendMessage("Manager", "GetFlowChartJsonReq", event.data.message);
+          window.focus();
+        }else if(event.data.code==1) {
+
+          gameInstance.SendMessage("Manager", "JsonToFlowChart", event.data.message);
+          window.focus();
+        }else if(event.data.code==2) {
+           console.log(event.data.message)
+          gameInstance.SendMessage("Manager", "ChangePgmType", event.data.message);
+          window.focus();
+        }
+        //此处执行事件
+      })
+      function GetFlowChartJsonResp(arge){
+        window.parent.postMessage(arge,'*')
+      }
+    </script>
+  </body>
+</html>
